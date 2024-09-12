@@ -10,17 +10,28 @@ if (config.TargetPath =="" || config.SourcePath == "")
     Console.WriteLine("The file must be in the same folder as the .exe file.");
     Console.WriteLine("And have the following aspect:");
     Console.WriteLine(@"{""SourcePath"":""C:\\proj"",""TargetPath"":""C:\\projBKP""}");
-    Console.ReadKey();
+    Console.ReadKey(true);
     return;
 }
 
 var sourceFiles = GetFilesAndSubFiles(config.SourcePath);
+
+if(sourceFiles.Count < 1)
+{
+    Console.WriteLine($"There are no files in the informed directory: {config.SourcePath}");
+    Console.ReadKey(true);
+    return;
+}
+
 Console.WriteLine($"{sourceFiles.Count} files found.");
 Console.WriteLine($"Copying files...");
 
+DirectoryInfo info = new (config.TargetPath);
+if(!info.Exists) info.Create();
+
 await CopyFilesAsync(sourceFiles, config.TargetPath);
 Console.WriteLine("End of the copy.");
-Console.ReadKey();
+Console.ReadKey(true);
 
 Config GetConfigFromFile()
 {
@@ -77,6 +88,10 @@ async Task CopyFileAsync(string sourceFile, string targetFile)
 List<string> GetFilesAndSubFiles(string path)
 {
     var files = new List<string>();
+
+    DirectoryInfo info = new(path);
+    if (!info.Exists) return files;
+
     files.AddRange(Directory.GetFiles(path, "*", SearchOption.AllDirectories).ToList());    
     return files;
 }
