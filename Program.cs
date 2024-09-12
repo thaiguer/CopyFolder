@@ -1,15 +1,48 @@
-﻿Console.WriteLine("Hello!");
+﻿using CopyFolder;
+using System.Text.Json;
 
-string sourcePath = @"C:\proj";
-string targetPath = @"C:\projBKP";
+Console.WriteLine("Hello!");
 
-var sourceFiles = GetFilesAndSubFiles(sourcePath);
+var config = GetConfigFromFile();
+if (config.TargetPath =="" || config.SourcePath == "")
+{
+    Console.WriteLine("Unnable to read the config file.");
+    Console.WriteLine("The file must be in the same folder as the .exe file.");
+    Console.WriteLine("And have the following aspect:");
+    Console.WriteLine(@"{""SourcePath"":""C:\\proj"",""TargetPath"":""C:\\projBKP""}");
+    Console.ReadKey();
+    return;
+}
+
+var sourceFiles = GetFilesAndSubFiles(config.SourcePath);
 Console.WriteLine($"{sourceFiles.Count} files found.");
 Console.WriteLine($"Copying files...");
 
-await CopyFilesAsync(sourceFiles, targetPath);
+await CopyFilesAsync(sourceFiles, config.TargetPath);
 Console.WriteLine("End of the copy.");
 Console.ReadKey();
+
+Config GetConfigFromFile()
+{
+    try
+    {
+        var currentApp = Environment.ProcessPath;
+        var currentDirectory = new FileInfo(currentApp ?? "").DirectoryName;
+        
+        if (currentDirectory == "") return new Config();
+        
+        var jsonContent = File.ReadAllText($@"{currentDirectory}/config.json");
+        var classFromJson = JsonSerializer.Deserialize<Config>(jsonContent);
+        
+        if(classFromJson == null) return new Config();
+        
+        return classFromJson;
+    }
+    catch
+    {
+        return new Config();
+    }
+}
 
 async Task CopyFilesAsync(List<string> sourceFiles, string targetPath)
 {
