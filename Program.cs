@@ -1,8 +1,6 @@
 ﻿using CopyFolder;
 using System.Text.Json;
 
-Console.WriteLine("Hello!");
-
 var config = GetConfigFromFile();
 if (config.TargetPath =="" || config.SourcePath == "")
 {
